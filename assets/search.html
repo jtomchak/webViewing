@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Searching</title>
+    <link rel="stylesheet" href="css/reset.css">
+    <link rel="stylesheet" href="css/style.css">
+    <link
+      href="https://unpkg.com/@primer/css/dist/primer.css"
+      rel="stylesheet"
+    />
+  </head>
+
+  <body>
+    <header class="Header">
+      <h1 class="h1">Searching...</h1>
+    </header>
+
+    <section class="Box content-holder">
+        <label for="enter-user">Enter user name:</label></br>
+        <input
+          class="form-control input-monospace m-4"
+          aria-label="SHA"
+          type="text"
+          data-userInput
+          name="enter-user"
+          placeholder="ex: pachicodes"
+        /><br />
+        <button data-button class="btn btn-outline mr-2" type="submit">Search</button><br />
+    </section>
+
+    <section data-resultCount class="flash content-holder">
+    </section>
+
+    <section data-resultsCards class="content-holder">
+
+
+    </section>
+
+    <nav data-pagination class="paginate-container" aria-label="Pagination">
+      <div class="pagination">
+        <a data-previous class="previous_page" rel="previous" aria-label="Previous Page">Previous</a>
+        <a data-next class="next_page" rel="next"  aria-label="Next Page"
+          >Next</a
+        >
+      </div>
+    </nav>
+    <script >
+      const searchButton = document.querySelector('[data-button]');
+const resultsContainer = document.querySelector('[data-resultsCards]');
+const resultsNumber = document.querySelector('[data-resultCount]');
+const pagination = document.querySelector('[data-pagination]');
+
+searchButton.addEventListener('click', function () {
+  resultsContainer.innerHTML = '';
+  resultsNumber.innerHTML = '';
+
+  const userSearch = document.querySelector('[data-userInput]');
+  const wantedUser = userSearch.value;
+
+  const previousButton = document.querySelector('[data-previous]');
+  const nextButton = document.querySelector('[data-next]');
+
+  let pageNumber = 1;
+
+  previousButton.addEventListener('click', function () {
+    pageNumber--;
+    resultsContainer.innerHTML = '';
+    resultsNumber.innerHTML = '';
+    searching(wantedUser, pageNumber);
+  });
+
+  nextButton.addEventListener('click', function () {
+    pageNumber++;
+    resultsContainer.innerHTML = '';
+    resultsNumber.innerHTML = '';
+    searching(wantedUser, pageNumber);
+  });
+
+  function searching(wantedUser, pageNumber) {
+    fetch(
+      `https://api.github.com/search/users?q=${wantedUser}&per_page=10&page=${pageNumber}`,
+    )
+      .then((user) => user.json())
+      .then((user) => {
+        pagination.setAttribute('class', 'show-content');
+        const totalCount = user.total_count;
+        const countElement = document.createElement('h4');
+
+        const countResult = document.createTextNode(
+          `We found ${totalCount} users in this search`,
+        );
+
+        const countResult0 = document.createTextNode(
+          `We found 0 users in this search`,
+        );
+
+        if (totalCount == undefined) {
+          countElement.append(countResult0);
+        } else {
+          countElement.append(countResult);
+        }
+        resultsNumber.append(countElement);
+
+        const usersList = user.items;
+        usersList.map((item) => {
+          const avatar = item.avatar_url;
+          const nick = item.login;
+          const userPage = item.html_url;
+
+          const picture = document.createElement('img');
+          picture.setAttribute('src', avatar);
+          picture.setAttribute('href', userPage);
+          picture.setAttribute('class', 'avatar');
+
+          const nickElement = document.createElement('h3');
+          const userLogin = document.createTextNode(nick);
+          nickElement.append(userLogin);
+
+          const card = document.createElement('div');
+
+          card.setAttribute('class', 'Box Box-row--hover-blue mb-3 p-2');
+          card.append(picture);
+          card.append(nickElement);
+
+          const pageLink = document.createElement('a');
+          pageLink.href = userPage;
+          pageLink.target = 'blank';
+          pageLink.append(card);
+
+          resultsContainer.append(pageLink);
+        });
+      });
+  }
+  searching(wantedUser, pageNumber);
+});
+
+    </script>
+  </body>
+</html>
